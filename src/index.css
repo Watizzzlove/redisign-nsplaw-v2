@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html, body {
+    background-color: #FFFFFF;
+    color: #0A0A0A;
+    overflow-x: hidden;
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom cursor suppression on desktop with mouse */
+  @media (pointer: fine) {
+    body, a, button, input, select, textarea {
+      cursor: none !important;
+    }
+  }
+}
+
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+.font-serif {
+  font-family: 'Cinzel', serif !important;
+}
+
+.font-sans {
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* noth.in signature brutalist pill button */
+.btn-nothin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 9999px;
+  border: 1px solid #0A0A0A;
+  background: #0A0A0A;
+  color: #FFFFFF;
+  padding: 10px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-nothin:hover {
+  background: #5F1358;
+  border-color: #5F1358;
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -4px rgba(95, 19, 88, 0.35);
+}
+
+.btn-nothin-outline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(10, 10, 10, 0.25);
+  background: transparent;
+  color: #0A0A0A;
+  padding: 10px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-nothin-outline:hover {
+  border-color: #5F1358;
+  color: #5F1358;
+  background: rgba(95, 19, 88, 0.04);
+}
+
+.arrow-icon {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-nothin:hover .arrow-icon,
+.btn-nothin-outline:hover .arrow-icon {
+  transform: translateX(4px);
+}
+
+/* Hairline borders */
+.border-hairline {
+  border-color: rgba(10, 10, 10, 0.1);
+}
+
+.border-hairline-dark {
+  border-color: rgba(10, 10, 10, 0.25);
+}
+
+/* Hide scrollbar for ultra-clean look */
+::-webkit-scrollbar {
+  display: none;
+}
+html {
+  scrollbar-width: none;
+}
