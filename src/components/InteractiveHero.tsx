@@ -38,13 +38,13 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
     const tempCtx = tempCanvas.getContext('2d')
     if (!inkCtx || !baseCtx || !revealCtx || !tempCtx) return
 
-    // Preload authentic antique column letter images (N, S, P)
+    // Preload authentic antique column letter images in direct frontal view (N, S, P)
     const imgN = new Image()
-    imgN.src = './assets/letter_n_column.png'
+    imgN.src = './assets/letter_n_frontal.png'
     const imgS = new Image()
-    imgS.src = './assets/letter_s_column.png'
+    imgS.src = './assets/letter_s_frontal.png'
     const imgP = new Image()
-    imgP.src = './assets/letter_p_column.png'
+    imgP.src = './assets/letter_p_frontal.png'
 
     const onLetterImgLoad = () => {
       renderStaticLayers()
@@ -141,37 +141,37 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       // Scaled and positioned proportionally to match the printed letter dimensions and stem positions,
       // preserving all sculptural elements, capital carvings, and architectural reliefs in full.
 
-      // N: Align column shafts with printed stems, letting Corinthian capitals flare naturally at the top
+      // N: Direct frontal vertical columns aligning with printed stems
       if (imgN.complete && imgN.naturalWidth > 0) {
-        const nScaleW = 1.07
+        const nScaleW = 1.05
         const nScaleH = 1.02
         const nW = boundsN.width * nScaleW
         const nH = boundsN.height * nScaleH
         const nX = boundsN.x - (nW - boundsN.width) / 2
         const nY = boundsN.y - (nH - boundsN.height) / 2
-        revealCtx.drawImage(imgN, 125, 63, 773, 778, nX, nY, nW, nH)
+        revealCtx.drawImage(imgN, 115, 57, 797, 918, nX, nY, nW, nH)
       }
 
-      // S: Clean bottom crop to remove rough dark plinth, aligning column curves with the printed S
+      // S: Direct frontal S-curve column matching the printed S geometry
       if (imgS.complete && imgS.naturalWidth > 0) {
-        const sScaleW = 1.05
+        const sScaleW = 1.04
         const sScaleH = 1.02
         const sW = boundsS.width * sScaleW
         const sH = boundsS.height * sScaleH
         const sX = boundsS.x - (sW - boundsS.width) / 2
         const sY = boundsS.y - (sH - boundsS.height) / 2
-        revealCtx.drawImage(imgS, 153, 58, 698, 830, sX, sY, sW, sH)
+        revealCtx.drawImage(imgS, 109, 49, 753, 912, sX, sY, sW, sH)
       }
 
-      // P: Proportional scaling so the ornate frieze arch spans the full loop and shaft aligns with the stem
+      // P: Direct frontal Corinthian column + classical Roman arch loop
       if (imgP.complete && imgP.naturalWidth > 0) {
-        const pScaleW = 1.10
+        const pScaleW = 1.06
         const pScaleH = 1.02
         const pW = boundsP.width * pScaleW
         const pH = boundsP.height * pScaleH
-        const pX = boundsP.x - (pW - boundsP.width) * 0.35
+        const pX = boundsP.x - (pW - boundsP.width) * 0.3
         const pY = boundsP.y - (pH - boundsP.height) / 2
-        revealCtx.drawImage(imgP, 160, 49, 697, 847, pX, pY, pW, pH)
+        revealCtx.drawImage(imgP, 160, 77, 698, 895, pX, pY, pW, pH)
       }
 
       // Draw brand plum apostrophe
