@@ -5,230 +5,453 @@ interface HeroProps {
   onOpenConsultation: () => void
 }
 
-interface LetterRevealProps {
-  letter: 'N' | 'S' | 'P'
-  columnImage: string
-  isActive: boolean
-  onClick: () => void
-  subtext: string
-}
-
-function ColumnLetter({ letter, columnImage, isActive, onClick, subtext }: LetterRevealProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const [mousePos, setMousePos] = useState<{ x: number; y: number; isHovered: boolean }>({
-    x: 50,
-    y: 50,
-    isHovered: false,
-  })
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width) * 100
-    const y = ((e.clientY - rect.top) / rect.height) * 100
-    setMousePos({ x, y, isHovered: true })
-  }
-
-  const handleMouseEnter = () => {
-    setMousePos((prev) => ({ ...prev, isHovered: true }))
-  }
-
-  const handleMouseLeave = () => {
-    setMousePos((prev) => ({ ...prev, isHovered: false }))
-  }
-
-  return (
-    <div
-      ref={containerRef}
-      onClick={onClick}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      data-cursor="explore"
-      data-cursor-label={letter === 'N' ? 'некторов' : letter === 'S' ? 'споры' : 'партнеры'}
-      className="relative flex-1 flex items-center justify-center cursor-pointer select-none py-2 sm:py-6 group transition-transform duration-300 active:scale-95"
-    >
-      {/* 1. Base Monumental Letter (Typography) */}
-      <span
-        className={`text-[22vw] sm:text-[24vw] md:text-[25vw] font-black tracking-tighter leading-none transition-all duration-300 ${
-          isActive || mousePos.isHovered ? 'text-transparent opacity-0' : 'text-[#0A0A0A] opacity-100'
-        }`}
-      >
-        {letter}
-      </span>
-
-      {/* 2. Antique Classical Marble Column Sculpture (Reveal Layer) */}
-      <div
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-500 pointer-events-none ${
-          isActive
-            ? 'opacity-100 scale-105 filter drop-shadow-[0_20px_35px_rgba(95,19,88,0.25)]'
-            : mousePos.isHovered
-            ? 'opacity-100 scale-102 filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.18)]'
-            : 'opacity-0 scale-95'
-        }`}
-      >
-        <img
-          src={columnImage}
-          alt={`Колонна ${letter}`}
-          className="w-full h-full max-h-[85vh] object-contain select-none"
-          loading="eager"
-        />
-      </div>
-
-      {/* 3. Fluid Brush Mask Reveal on Cursor Movement (Screenshot 1 noth.in style) */}
-      {mousePos.isHovered && !isActive && (
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-200"
-          style={{
-            maskImage: `radial-gradient(circle 180px at ${mousePos.x}% ${mousePos.y}%, black 40%, transparent 85%)`,
-            WebkitMaskImage: `radial-gradient(circle 180px at ${mousePos.x}% ${mousePos.y}%, black 40%, transparent 85%)`,
-          }}
-        >
-          <img
-            src={columnImage}
-            alt={`Колонна ${letter} Reveal`}
-            className="w-full h-full max-h-[85vh] object-contain scale-105 filter drop-shadow-[0_15px_30px_rgba(95,19,88,0.3)]"
-          />
-        </div>
-      )}
-
-      {/* Floating subtle indicator badge on active */}
-      {isActive && (
-        <div className="absolute -bottom-2 sm:-bottom-4 left-1/2 -translate-x-1/2 bg-[#5F1358] text-white px-3 py-1 rounded-full font-mono text-[9px] sm:text-[11px] whitespace-nowrap shadow-lg">
-          {subtext}
-        </div>
-      )}
-    </div>
-  )
+interface InkParticle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  radius: number
+  life: number
+  decay: number
 }
 
 export function InteractiveHero({ onOpenConsultation }: HeroProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [activeLetter, setActiveLetter] = useState<string | null>(null)
+  const [activePartner, setActivePartner] = useState<string | null>(null)
 
-  // Fluid ink/brush trail canvas (noth.in screenshot 1 style)
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const container = containerRef.current
+    if (!canvas || !container) return
+    const ctx = canvas.getContext('2d', { willReadFrequently: false })
     if (!ctx) return
 
-    let animationFrameId: number
-    let width = (canvas.width = window.innerWidth)
-    let height = (canvas.height = window.innerHeight)
+    // Offscreen canvases for compositing
+    const inkCanvas = document.createElement('canvas')
+    const inkCtx = inkCanvas.getContext('2d')
+    const baseCanvas = document.createElement('canvas')
+    const baseCtx = baseCanvas.getContext('2d')
+    const revealCanvas = document.createElement('canvas')
+    const revealCtx = revealCanvas.getContext('2d')
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')
+    if (!inkCtx || !baseCtx || !revealCtx || !tempCtx) return
 
-    const handleResize = () => {
-      width = canvas.width = window.innerWidth
-      height = canvas.height = window.innerHeight
+    // Preload authentic antique column letter images (N, S, P)
+    const imgN = new Image()
+    imgN.src = './assets/letter_n_column.png'
+    const imgS = new Image()
+    imgS.src = './assets/letter_s_column.png'
+    const imgP = new Image()
+    imgP.src = './assets/letter_p_column.png'
+
+    const onLetterImgLoad = () => {
+      renderStaticLayers()
     }
-    window.addEventListener('resize', handleResize)
-
-    // Fluid organic brush drops
-    interface FluidDrop {
-      x: number
-      y: number
-      radius: number
-      maxRadius: number
-      alpha: number
-      growth: number
-      color: string
+    imgN.onload = onLetterImgLoad
+    imgS.onload = onLetterImgLoad
+    imgP.onload = onLetterImgLoad
+    if (imgN.complete && imgS.complete && imgP.complete) {
+      renderStaticLayers()
     }
 
-    const drops: FluidDrop[] = []
+    let width = 0
+    let height = 0
+    let dpr = 1
+
+    // Letter layout positions for hover hit-testing
+    let letterBounds: { letter: string; x: number; y: number; width: number; height: number; info: string }[] = []
+
+    function renderStaticLayers() {
+      if (width === 0 || height === 0 || !baseCtx || !revealCtx) return
+
+      baseCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      revealCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      baseCtx.clearRect(0, 0, width, height)
+      revealCtx.clearRect(0, 0, width, height)
+
+      // Calculate typography dimensions
+      const fontSize = Math.min(width * 0.23, height * 0.44, 280)
+      const font = `900 ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
+      const fontApos = `900 ${fontSize * 0.95}px "Cinzel", "Times New Roman", serif`
+
+      baseCtx.font = font
+      baseCtx.textBaseline = 'middle'
+      baseCtx.textAlign = 'left'
+
+      // Measure letters
+      const mN = baseCtx.measureText('N')
+      const mS = baseCtx.measureText('S')
+      const mP = baseCtx.measureText('P')
+      baseCtx.font = fontApos
+      const mA = baseCtx.measureText('’')
+
+      const gap = fontSize * 0.08
+      const totalWidth = mN.width + mS.width + mP.width + mA.width + gap * 3
+      const startX = (width - totalWidth) / 2
+      const centerY = height * 0.52
+
+      const xN = startX
+      const xS = xN + mN.width + gap
+      const xP = xS + mS.width + gap
+      const xA = xP + mP.width + gap * 0.6
+
+      // Precise glyph bounding box calculation
+      const getGlyphBox = (m: TextMetrics, x: number, defaultH: number) => {
+        const ascent = m.actualBoundingBoxAscent ?? (defaultH * 0.36)
+        const descent = m.actualBoundingBoxDescent ?? (defaultH * 0.36)
+        const left = m.actualBoundingBoxLeft ?? 0
+        const right = m.actualBoundingBoxRight ?? m.width
+        const glyphX = x - left
+        const glyphY = centerY - ascent
+        const glyphW = right + left
+        const glyphH = ascent + descent
+        return {
+          x: glyphX,
+          y: glyphY,
+          width: glyphW > 0 ? glyphW : m.width,
+          height: glyphH > 0 ? glyphH : defaultH * 0.72
+        }
+      }
+
+      baseCtx.font = font
+      const boundsN = getGlyphBox(mN, xN, fontSize)
+      const boundsS = getGlyphBox(mS, xS, fontSize)
+      const boundsP = getGlyphBox(mP, xP, fontSize)
+
+      letterBounds = [
+        { letter: 'N', x: boundsN.x, y: boundsN.y, width: boundsN.width, height: boundsN.height, info: 'Александр Некторов • Управляющий партнер' },
+        { letter: 'S', x: boundsS.x, y: boundsS.y, width: boundsS.width, height: boundsS.height, info: 'Споры и Сделки • Роман Макаров' },
+        { letter: 'P', x: boundsP.x, y: boundsP.y, width: boundsP.width, height: boundsP.height, info: 'Партнеры и Адвокаты • Илья Рачков, Д.Ю.Н.' },
+        { letter: '’', x: xA, y: centerY - fontSize * 0.5, width: mA.width, height: fontSize * 0.7, info: 'Адвокатское бюро NSP • Практика с 2006 года' },
+      ]
+
+      // 1. Draw Base Black Letters
+      baseCtx.fillStyle = '#0A0A0A'
+      baseCtx.font = font
+      baseCtx.fillText('N', xN, centerY)
+      baseCtx.fillText('S', xS, centerY)
+      baseCtx.fillText('P', xP, centerY)
+      baseCtx.font = fontApos
+      baseCtx.fillStyle = '#5F1358' // Brand plum accent apostrophe
+      baseCtx.fillText('’', xA, centerY - fontSize * 0.12)
+
+      // 2. Draw Reveal Layer: Authentic Antique Marble Column Sculptures
+      // Scaled and positioned proportionally to match the printed letter dimensions and stem positions,
+      // preserving all sculptural elements, capital carvings, and architectural reliefs in full.
+
+      // N: Align column shafts with printed stems, letting Corinthian capitals flare naturally at the top
+      if (imgN.complete && imgN.naturalWidth > 0) {
+        const nScaleW = 1.07
+        const nScaleH = 1.02
+        const nW = boundsN.width * nScaleW
+        const nH = boundsN.height * nScaleH
+        const nX = boundsN.x - (nW - boundsN.width) / 2
+        const nY = boundsN.y - (nH - boundsN.height) / 2
+        revealCtx.drawImage(imgN, 125, 63, 773, 778, nX, nY, nW, nH)
+      }
+
+      // S: Clean bottom crop to remove rough dark plinth, aligning column curves with the printed S
+      if (imgS.complete && imgS.naturalWidth > 0) {
+        const sScaleW = 1.05
+        const sScaleH = 1.02
+        const sW = boundsS.width * sScaleW
+        const sH = boundsS.height * sScaleH
+        const sX = boundsS.x - (sW - boundsS.width) / 2
+        const sY = boundsS.y - (sH - boundsS.height) / 2
+        revealCtx.drawImage(imgS, 153, 58, 698, 830, sX, sY, sW, sH)
+      }
+
+      // P: Proportional scaling so the ornate frieze arch spans the full loop and shaft aligns with the stem
+      if (imgP.complete && imgP.naturalWidth > 0) {
+        const pScaleW = 1.10
+        const pScaleH = 1.02
+        const pW = boundsP.width * pScaleW
+        const pH = boundsP.height * pScaleH
+        const pX = boundsP.x - (pW - boundsP.width) * 0.35
+        const pY = boundsP.y - (pH - boundsP.height) / 2
+        revealCtx.drawImage(imgP, 160, 49, 697, 847, pX, pY, pW, pH)
+      }
+
+      // Draw brand plum apostrophe
+      revealCtx.font = fontApos
+      revealCtx.textBaseline = 'middle'
+      revealCtx.textAlign = 'left'
+      revealCtx.fillStyle = '#5F1358'
+      revealCtx.fillText('’', xA, centerY - fontSize * 0.12)
+    }
+
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      width = container.clientWidth
+      height = container.clientHeight
+
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      canvas.style.width = `${width}px`
+      canvas.style.height = `${height}px`
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+      const offcanvases = [inkCanvas, baseCanvas, revealCanvas, tempCanvas]
+      offcanvases.forEach((c) => {
+        c.width = width * dpr
+        c.height = height * dpr
+        const cCtx = c.getContext('2d')
+        if (cCtx) cCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      })
+
+      renderStaticLayers()
+    }
+
+    resize()
+    window.addEventListener('resize', resize)
+
+    // Octopus Ink Particle Physics
+    const particles: InkParticle[] = []
     let lastX = 0
     let lastY = 0
+    let hasMoved = false
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
+    const addInkPoint = (x: number, y: number, vx: number, vy: number, speed: number) => {
+      // Dynamic radius based on speed (solid organic blob)
+      const baseRadius = Math.min(65, Math.max(26, 24 + speed * 0.5))
 
-      const dist = Math.hypot(x - lastX, y - lastY)
-      if (dist > 12) {
-        // Draw fluid dark ink blob with subtle plum undertone
-        drops.push({
-          x,
-          y,
-          radius: 18,
-          maxRadius: Math.min(220, 60 + dist * 2.8),
-          alpha: 0.28,
-          growth: 3.2,
-          color: 'rgba(95, 19, 88, ', // #5F1358
+      // Main blob
+      particles.push({
+        x,
+        y,
+        vx: vx * 0.08,
+        vy: vy * 0.08,
+        radius: baseRadius,
+        life: 1.0,
+        decay: 0.016, // ~1 second duration
+      })
+
+      // Organic satellite droplets (ink splatter tentacles)
+      if (Math.random() > 0.3) {
+        const angle = Math.random() * Math.PI * 2
+        const dist = Math.random() * baseRadius * 0.8
+        particles.push({
+          x: x + Math.cos(angle) * dist,
+          y: y + Math.sin(angle) * dist,
+          vx: vx * 0.12 + (Math.random() - 0.5) * 1.5,
+          vy: vy * 0.12 + (Math.random() - 0.5) * 1.5,
+          radius: Math.random() * 16 + 8,
+          life: 0.9,
+          decay: 0.022,
         })
+      }
+    }
 
-        // Also add secondary soft atmospheric drop
-        if (Math.random() > 0.4) {
-          drops.push({
-            x: x + (Math.random() - 0.5) * 30,
-            y: y + (Math.random() - 0.5) * 30,
-            radius: 8,
-            maxRadius: 100,
-            alpha: 0.16,
-            growth: 1.8,
-            color: 'rgba(10, 10, 10, ',
-          })
-        }
+    let lastMoveTime = 0
 
+    const handlePointerMove = (clientX: number, clientY: number) => {
+      const rect = container.getBoundingClientRect()
+      const x = clientX - rect.left
+      const y = clientY - rect.top
+
+      const now = performance.now()
+      const timeSinceLast = now - lastMoveTime
+      lastMoveTime = now
+
+      if (!hasMoved || timeSinceLast > 300) {
         lastX = x
         lastY = y
+        hasMoved = true
+        addInkPoint(x, y, 0, 0, 10)
+        return
+      }
+
+      const dx = x - lastX
+      const dy = y - lastY
+      const dist = Math.hypot(dx, dy)
+
+      // Prevent long streaks across the screen on rapid mouse re-entry
+      if (dist > 140) {
+        lastX = x
+        lastY = y
+        addInkPoint(x, y, 0, 0, 15)
+        return
+      }
+
+      const speed = dist
+
+      // Hit-test letters for partner text banner
+      let matchedInfo: string | null = null
+      for (const b of letterBounds) {
+        if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) {
+          matchedInfo = b.info
+          break
+        }
+      }
+      if (matchedInfo) {
+        setActivePartner(matchedInfo)
+      }
+
+      // Interpolate points so there are zero gaps even on rapid movement
+      const step = 6 // pixels per step
+      const steps = Math.max(1, Math.floor(dist / step))
+      for (let i = 1; i <= steps; i++) {
+        const ix = lastX + (dx * i) / steps
+        const iy = lastY + (dy * i) / steps
+        addInkPoint(ix, iy, dx, dy, speed)
+      }
+
+      lastX = x
+      lastY = y
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      handlePointerMove(e.clientX, e.clientY)
+    }
+
+    const onPointerDown = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      for (let i = 0; i < 6; i++) {
+        addInkPoint(
+          x + (Math.random() - 0.5) * 36,
+          y + (Math.random() - 0.5) * 36,
+          (Math.random() - 0.5) * 5,
+          (Math.random() - 0.5) * 5,
+          40
+        )
       }
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        hasMoved = false
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+        const rect = container.getBoundingClientRect()
+        const x = e.touches[0].clientX - rect.left
+        const y = e.touches[0].clientY - rect.top
+        for (let i = 0; i < 6; i++) {
+          addInkPoint(
+            x + (Math.random() - 0.5) * 36,
+            y + (Math.random() - 0.5) * 36,
+            (Math.random() - 0.5) * 5,
+            (Math.random() - 0.5) * 5,
+            40
+          )
+        }
+      }
+    }
 
-    const render = () => {
-      ctx.clearRect(0, 0, width, height)
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+      }
+    }
 
-      for (let i = drops.length - 1; i >= 0; i--) {
-        const d = drops[i]
-        d.radius += d.growth
-        d.alpha *= 0.93
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mousedown', onPointerDown)
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
 
-        if (d.alpha < 0.008 || d.radius >= d.maxRadius) {
-          drops.splice(i, 1)
-          continue
+    // Animation & Compositing Loop
+    let animationId: number
+    const animate = () => {
+      // 1. Render Ink Canvas
+      inkCtx.clearRect(0, 0, width, height)
+
+      if (particles.length > 0) {
+        inkCtx.fillStyle = '#0A0A0A'
+        inkCtx.strokeStyle = '#0A0A0A'
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i]
+          p.x += p.vx
+          p.y += p.vy
+          p.vx *= 0.95
+          p.vy *= 0.95
+          p.life -= p.decay
+
+          if (p.life <= 0) {
+            particles.splice(i, 1)
+            continue
+          }
+
+          // Draw organic blob
+          const currentRadius = p.radius * Math.min(p.life * 1.3, 1)
+          inkCtx.beginPath()
+          inkCtx.arc(p.x, p.y, currentRadius, 0, Math.PI * 2)
+          inkCtx.fill()
         }
 
-        const gradient = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.radius)
-        gradient.addColorStop(0, `${d.color}${d.alpha})`)
-        gradient.addColorStop(0.5, `${d.color}${d.alpha * 0.45})`)
-        gradient.addColorStop(1, `${d.color}0)`)
-
-        ctx.fillStyle = gradient
-        ctx.beginPath()
-        ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2)
-        ctx.fill()
+        // Connect adjacent ink drops for fluid, unbroken octopus tentacles
+        inkCtx.lineCap = 'round'
+        inkCtx.lineJoin = 'round'
+        for (let i = 0; i < particles.length - 1; i++) {
+          const p1 = particles[i]
+          const p2 = particles[i + 1]
+          const d = Math.hypot(p1.x - p2.x, p1.y - p2.y)
+          if (d < 50) {
+            inkCtx.lineWidth = Math.min(p1.radius, p2.radius) * 1.6 * Math.min(p1.life, p2.life)
+            inkCtx.beginPath()
+            inkCtx.moveTo(p1.x, p1.y)
+            inkCtx.lineTo(p2.x, p2.y)
+            inkCtx.stroke()
+          }
+        }
       }
 
-      animationFrameId = requestAnimationFrame(render)
+      // 2. Clear Screen in 1:1 buffer coordinates
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // 3. Draw Base Black Letters
+      ctx.drawImage(baseCanvas, 0, 0)
+
+      // 4. Draw Black Ink on the Background (organic ink following cursor)
+      ctx.drawImage(inkCanvas, 0, 0)
+
+      // 5. Draw Reveal Layer ONLY in the Intersection of Ink + Letters
+      if (particles.length > 0) {
+        tempCtx.setTransform(1, 0, 0, 1, 0, 0)
+        tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
+        // Step a: Draw column letters
+        tempCtx.drawImage(revealCanvas, 0, 0)
+        // Step b: Keep ONLY the area covered by the ink trail
+        tempCtx.globalCompositeOperation = 'destination-in'
+        tempCtx.drawImage(inkCanvas, 0, 0)
+        tempCtx.globalCompositeOperation = 'source-over'
+
+        // Step c: Composite onto screen over the base letters
+        ctx.drawImage(tempCanvas, 0, 0)
+      }
+
+      animationId = requestAnimationFrame(animate)
     }
 
-    render()
+    animate()
 
     return () => {
-      window.removeEventListener('resize', handleResize)
-      window.removeEventListener('mousemove', handleMouseMove)
-      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mousedown', onPointerDown)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      cancelAnimationFrame(animationId)
     }
   }, [])
 
-  const toggleLetter = (key: string) => {
-    setActiveLetter((prev) => (prev === key ? null : key))
-  }
-
   return (
-    <section className="relative w-full min-h-screen bg-white text-[#0A0A0A] flex flex-col justify-between p-6 sm:p-10 md:p-12 overflow-hidden select-none">
-      
-      {/* 1. Organic Fluid Brush Canvas (noth.in screenshot 1) */}
+    <section
+      ref={containerRef}
+      className="relative w-full min-h-screen bg-white text-[#0A0A0A] flex flex-col justify-between p-6 sm:p-10 md:p-12 overflow-hidden select-none"
+    >
+      {/* 1. Full-Screen Canvas handling Octopus Ink + Exact Column Letter Reveal */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-0"
+        className="absolute inset-0 w-full h-full pointer-events-none z-10"
       />
 
       {/* 2. Top Header Row (Exact noth.in composition) */}
       <header className="relative z-20 flex items-start justify-between w-full">
-        
-        {/* Top-Left: Punchy Statement + Pill Action Button */}
+        {/* Top-Left: Statement + Action Button */}
         <div className="flex flex-col items-start space-y-3 sm:space-y-4 max-w-[260px] sm:max-w-sm">
           <p className="font-sans text-[13px] sm:text-[16px] md:text-[17px] font-semibold tracking-tight text-[#0A0A0A] leading-snug">
             Не просто юристы, а стратегический перевес.<br />
@@ -246,7 +469,7 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
           </button>
         </div>
 
-        {/* Top-Right: Brutalist Vertical Navigation + Dot Grid Icon */}
+        {/* Top-Right: Navigation + 4-Dot Menu */}
         <div className="flex items-start gap-4 text-right">
           <nav className="hidden sm:flex flex-col space-y-1 font-mono text-[11px] sm:text-[12px] font-semibold uppercase tracking-wider text-[#0A0A0A]">
             <a href="#practices" className="hover:text-[#5F1358] transition py-0.5" data-cursor="link" data-cursor-label="услуги">
@@ -266,7 +489,6 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
             </a>
           </nav>
 
-          {/* noth.in 4-dot menu icon */}
           <div
             className="pt-1 flex flex-col gap-1 cursor-pointer active:scale-90 transition-transform"
             onClick={onOpenConsultation}
@@ -283,77 +505,33 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
             </div>
           </div>
         </div>
-
       </header>
 
-      {/* 3. Centerpiece: Massive Screen-Spanning Monumental Lettering (N S P ’) with 3D Antique Column Sculptures */}
-      <div className="relative z-10 my-auto w-full flex flex-col items-center justify-center py-4 sm:py-8">
-        <div className="w-full flex items-center justify-center text-center select-none font-sans font-black tracking-tighter leading-none">
-          
-          {/* Letter N: Corinthian Marble Column */}
-          <ColumnLetter
-            letter="N"
-            columnImage="./assets/letter_n_column.png"
-            isActive={activeLetter === 'N'}
-            onClick={() => toggleLetter('N')}
-            subtext="Александр Некторов • Управляющий партнер"
-          />
+      {/* 3. Center Spacer Area (Canvas renders the centered monumental letters N S P ’) */}
+      <div className="relative z-0 my-auto w-full flex flex-col items-center justify-center min-h-[35vh]">
+        {/* Invisible layout placeholder for accessibility */}
+        <h1 className="sr-only">NSP — Адвокатское бюро «Некторов, Савельев и Партнеры»</h1>
+      </div>
 
-          {/* Letter S: Fluted Doric / Corinthian Column */}
-          <ColumnLetter
-            letter="S"
-            columnImage="./assets/letter_s_column.png"
-            isActive={activeLetter === 'S'}
-            onClick={() => toggleLetter('S')}
-            subtext="Споры и Сделки • Роман Макаров"
-          />
-
-          {/* Letter P: Capital Ionic / Corinthian Column */}
-          <ColumnLetter
-            letter="P"
-            columnImage="./assets/letter_p_column.png"
-            isActive={activeLetter === 'P'}
-            onClick={() => toggleLetter('P')}
-            subtext="Партнеры и Адвокаты • Илья Рачков, Д.Ю.Н."
-          />
-
-          {/* Apostrophe ’ in noth.in signature style */}
-          <div
-            onClick={() => toggleLetter('apostrophe')}
-            className={`text-[15vw] sm:text-[16vw] font-serif -ml-2 sm:-ml-8 -mt-8 sm:-mt-24 text-[#5F1358] transition-transform duration-300 hover:rotate-12 cursor-pointer flex-shrink-0 active:scale-90 ${
-              activeLetter === 'apostrophe' ? 'rotate-12 scale-110' : ''
-            }`}
-            data-cursor="action"
-            data-cursor-label="с 2006"
-          >
-            ’
-          </div>
-
-        </div>
-
-        {/* Dynamic Minimalist Letter Indicator on Hover / Tap */}
-        <div className="min-h-6 font-mono text-[10px] sm:text-[12px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-[#5F1358] font-semibold text-center mt-3 transition-all duration-200">
-          {activeLetter === 'N' && '[ Александр Некторов • Управляющий партнер, адвокат ]'}
-          {activeLetter === 'S' && '[ Сделки & Споры • Роман Макаров • Илья Рачков, Д.Ю.Н. ]'}
-          {activeLetter === 'P' && '[ Партнеры и адвокаты NSP • Практика с 2006 года ]'}
-          {activeLetter === 'apostrophe' && '[ Адвокатское бюро NSP • Надежность античных колонн ]'}
-          {!activeLetter && (
+      {/* 4. Dynamic Minimalist Partner Indicator */}
+      <div className="relative z-20 w-full flex items-center justify-center mb-2">
+        <div className="min-h-6 font-mono text-[10px] sm:text-[12px] uppercase tracking-[0.2em] sm:tracking-[0.25em] text-[#5F1358] font-semibold text-center transition-all duration-200">
+          {activePartner ? (
+            `[ ${activePartner} ]`
+          ) : (
             <span className="text-slate-400 font-normal">
-              [ НАВЕДИТЕ КУРСОРОМ ИЛИ НАЖМИТЕ НА БУКВЫ NSP ]
+              [ ПРОВЕДИТЕ КУРСОРОМ ПО ЭКРАНУ И БУКВАМ NSP ]
             </span>
           )}
         </div>
       </div>
 
-      {/* 4. Bottom Footer Row (Exact noth.in positioning) */}
+      {/* 5. Bottom Footer Row (Exact noth.in positioning) */}
       <footer className="relative z-20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 font-mono text-[10px] sm:text-[12px] font-medium text-[#0A0A0A] text-center sm:text-left">
-        
-        {/* Bottom Left: Location */}
         <div>
           Адвокатское бюро в Москве и глобальных хабах
         </div>
 
-        {/* Bottom Right: Links */}
         <div className="flex items-center gap-3 sm:gap-4">
           <a
             href="https://t.me/nsplaw"
@@ -379,9 +557,7 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
             Москва, Сити
           </span>
         </div>
-
       </footer>
-
     </section>
   )
 }
