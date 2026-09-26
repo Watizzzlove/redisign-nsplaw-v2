@@ -142,9 +142,10 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       // preserving all sculptural elements, capital carvings, and architectural reliefs in full.
 
       // N: Direct frontal vertical columns aligning with printed stems
+      // Slightly enlarged to match the weight of letter S and printed font while keeping exact centering
       if (imgN.complete && imgN.naturalWidth > 0) {
-        const nScaleW = 1.05
-        const nScaleH = 1.02
+        const nScaleW = 1.14
+        const nScaleH = 1.08
         const nW = boundsN.width * nScaleW
         const nH = boundsN.height * nScaleH
         const nX = boundsN.x - (nW - boundsN.width) / 2
@@ -164,12 +165,14 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       }
 
       // P: Direct frontal Corinthian column + classical Roman arch loop
+      // Enlarged and shifted left to align the inner counter hole and column stem with printed P
       if (imgP.complete && imgP.naturalWidth > 0) {
-        const pScaleW = 1.06
-        const pScaleH = 1.02
+        const pScaleW = 1.12
+        const pScaleH = 1.06
         const pW = boundsP.width * pScaleW
         const pH = boundsP.height * pScaleH
-        const pX = boundsP.x - (pW - boundsP.width) * 0.3
+        const pShiftLeft = boundsP.width * 0.05
+        const pX = boundsP.x - (pW - boundsP.width) * 0.5 - pShiftLeft
         const pY = boundsP.y - (pH - boundsP.height) / 2
         revealCtx.drawImage(imgP, 160, 77, 698, 895, pX, pY, pW, pH)
       }
@@ -214,32 +217,32 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
     let hasMoved = false
 
     const addInkPoint = (x: number, y: number, vx: number, vy: number, speed: number) => {
-      // Dynamic radius based on speed (solid organic blob)
-      const baseRadius = Math.min(65, Math.max(26, 24 + speed * 0.5))
+      // Dynamic radius based on speed (solid organic blob, expanded for broader reveal)
+      const baseRadius = Math.min(95, Math.max(40, 36 + speed * 0.75))
 
-      // Main blob
+      // Main blob with longer lifespan (~2.4s)
       particles.push({
         x,
         y,
-        vx: vx * 0.08,
-        vy: vy * 0.08,
+        vx: vx * 0.06,
+        vy: vy * 0.06,
         radius: baseRadius,
         life: 1.0,
-        decay: 0.016, // ~1 second duration
+        decay: 0.007,
       })
 
       // Organic satellite droplets (ink splatter tentacles)
-      if (Math.random() > 0.3) {
+      if (Math.random() > 0.35) {
         const angle = Math.random() * Math.PI * 2
-        const dist = Math.random() * baseRadius * 0.8
+        const dist = Math.random() * baseRadius * 0.85
         particles.push({
           x: x + Math.cos(angle) * dist,
           y: y + Math.sin(angle) * dist,
-          vx: vx * 0.12 + (Math.random() - 0.5) * 1.5,
-          vy: vy * 0.12 + (Math.random() - 0.5) * 1.5,
-          radius: Math.random() * 16 + 8,
-          life: 0.9,
-          decay: 0.022,
+          vx: vx * 0.08 + (Math.random() - 0.5) * 1.8,
+          vy: vy * 0.08 + (Math.random() - 0.5) * 1.8,
+          radius: Math.random() * 22 + 10,
+          life: 0.95,
+          decay: 0.009,
         })
       }
     }
@@ -290,12 +293,42 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       }
 
       // Interpolate points so there are zero gaps even on rapid movement
-      const step = 6 // pixels per step
+      const step = 8 // pixels per step
       const steps = Math.max(1, Math.floor(dist / step))
       for (let i = 1; i <= steps; i++) {
         const ix = lastX + (dx * i) / steps
         const iy = lastY + (dy * i) / steps
         addInkPoint(ix, iy, dx, dy, speed)
+      }
+
+      // Project forward ink stream in the direction of motion
+      if (speed > 2.5) {
+        const nx = dx / speed
+        const ny = dy / speed
+        const perpX = -ny
+        const perpY = nx
+
+        const forwardCount = speed > 10 ? 2 : 1
+        for (let f = 1; f <= forwardCount; f++) {
+          const forwardDist = (18 + speed * 0.85) * (f * 0.7)
+          const lateralSpread = (Math.random() - 0.5) * (12 + speed * 0.25)
+          const fx = x + nx * forwardDist + perpX * lateralSpread
+          const fy = y + ny * forwardDist + perpY * lateralSpread
+          particles.push({
+            x: fx,
+            y: fy,
+            vx: nx * (speed * 0.12 + 1.2) + (Math.random() - 0.5) * 0.8,
+            vy: ny * (speed * 0.12 + 1.2) + (Math.random() - 0.5) * 0.8,
+            radius: Math.min(48, Math.max(18, 16 + speed * 0.4)),
+            life: 0.9,
+            decay: 0.008,
+          })
+        }
+      }
+
+      // Limit particle pool to maintain buttery-smooth 60fps
+      if (particles.length > 700) {
+        particles.splice(0, particles.length - 700)
       }
 
       lastX = x
@@ -310,13 +343,13 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       const rect = container.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 8; i++) {
         addInkPoint(
-          x + (Math.random() - 0.5) * 36,
-          y + (Math.random() - 0.5) * 36,
-          (Math.random() - 0.5) * 5,
-          (Math.random() - 0.5) * 5,
-          40
+          x + (Math.random() - 0.5) * 45,
+          y + (Math.random() - 0.5) * 45,
+          (Math.random() - 0.5) * 6,
+          (Math.random() - 0.5) * 6,
+          45
         )
       }
     }
@@ -328,13 +361,13 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
         const rect = container.getBoundingClientRect()
         const x = e.touches[0].clientX - rect.left
         const y = e.touches[0].clientY - rect.top
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 8; i++) {
           addInkPoint(
-            x + (Math.random() - 0.5) * 36,
-            y + (Math.random() - 0.5) * 36,
-            (Math.random() - 0.5) * 5,
-            (Math.random() - 0.5) * 5,
-            40
+            x + (Math.random() - 0.5) * 45,
+            y + (Math.random() - 0.5) * 45,
+            (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 6,
+            45
           )
         }
       }
@@ -388,8 +421,8 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
           const p1 = particles[i]
           const p2 = particles[i + 1]
           const d = Math.hypot(p1.x - p2.x, p1.y - p2.y)
-          if (d < 50) {
-            inkCtx.lineWidth = Math.min(p1.radius, p2.radius) * 1.6 * Math.min(p1.life, p2.life)
+          if (d < 85) {
+            inkCtx.lineWidth = Math.min(p1.radius, p2.radius) * 1.7 * Math.min(p1.life, p2.life)
             inkCtx.beginPath()
             inkCtx.moveTo(p1.x, p1.y)
             inkCtx.lineTo(p2.x, p2.y)
