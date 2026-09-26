@@ -71,10 +71,12 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       baseCtx.clearRect(0, 0, width, height)
       revealCtx.clearRect(0, 0, width, height)
 
-      // Calculate typography dimensions
-      const fontSize = Math.min(width * 0.23, height * 0.44, 280)
+      // Calculate typography dimensions (proportional enlargement across desktop and mobile)
+      const isMobile = width < 640
+      const fontSize = isMobile
+        ? Math.min(width * 0.38, 175)
+        : Math.min(width * 0.28, height * 0.50, 380)
       const font = `900 ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
-      const fontApos = `900 ${fontSize * 0.95}px "Cinzel", "Times New Roman", serif`
 
       baseCtx.font = font
       baseCtx.textBaseline = 'middle'
@@ -84,18 +86,15 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       const mN = baseCtx.measureText('N')
       const mS = baseCtx.measureText('S')
       const mP = baseCtx.measureText('P')
-      baseCtx.font = fontApos
-      const mA = baseCtx.measureText('’')
 
       const gap = fontSize * 0.08
-      const totalWidth = mN.width + mS.width + mP.width + mA.width + gap * 3
+      const totalWidth = mN.width + mS.width + mP.width + gap * 2
       const startX = (width - totalWidth) / 2
-      const centerY = height * 0.52
+      const centerY = isMobile ? height * 0.48 : height * 0.50
 
       const xN = startX
       const xS = xN + mN.width + gap
       const xP = xS + mS.width + gap
-      const xA = xP + mP.width + gap * 0.6
 
       // Precise glyph bounding box calculation
       const getGlyphBox = (m: TextMetrics, x: number, defaultH: number) => {
@@ -124,7 +123,6 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
         { letter: 'N', x: boundsN.x, y: boundsN.y, width: boundsN.width, height: boundsN.height, info: 'Александр Некторов • Управляющий партнер' },
         { letter: 'S', x: boundsS.x, y: boundsS.y, width: boundsS.width, height: boundsS.height, info: 'Споры и Сделки • Роман Макаров' },
         { letter: 'P', x: boundsP.x, y: boundsP.y, width: boundsP.width, height: boundsP.height, info: 'Партнеры и Адвокаты • Илья Рачков, Д.Ю.Н.' },
-        { letter: '’', x: xA, y: centerY - fontSize * 0.5, width: mA.width, height: fontSize * 0.7, info: 'Адвокатское бюро NSP • Практика с 2006 года' },
       ]
 
       // 1. Draw Base Black Letters
@@ -133,9 +131,6 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
       baseCtx.fillText('N', xN, centerY)
       baseCtx.fillText('S', xS, centerY)
       baseCtx.fillText('P', xP, centerY)
-      baseCtx.font = fontApos
-      baseCtx.fillStyle = '#5F1358' // Brand plum accent apostrophe
-      baseCtx.fillText('’', xA, centerY - fontSize * 0.12)
 
       // 2. Draw Reveal Layer: Authentic Antique Marble Column Sculptures
       // Scaled and positioned proportionally to match the printed letter dimensions and stem positions,
@@ -176,13 +171,6 @@ export function InteractiveHero({ onOpenConsultation }: HeroProps) {
         const pY = boundsP.y - (pH - boundsP.height) / 2
         revealCtx.drawImage(imgP, 160, 77, 698, 895, pX, pY, pW, pH)
       }
-
-      // Draw brand plum apostrophe
-      revealCtx.font = fontApos
-      revealCtx.textBaseline = 'middle'
-      revealCtx.textAlign = 'left'
-      revealCtx.fillStyle = '#5F1358'
-      revealCtx.fillText('’', xA, centerY - fontSize * 0.12)
     }
 
     const resize = () => {
