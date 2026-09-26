@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, ArrowRight } from 'lucide-react'
 
 interface ServicesAndNewsProps {
   onOpenConsultation?: () => void
@@ -8,296 +8,285 @@ interface ServicesAndNewsProps {
 export function ServicesAndNewsSection({ onOpenConsultation }: ServicesAndNewsProps) {
   const [selectedService, setSelectedService] = useState<string | null>(null)
 
-  // Primary services from screenshot 3
+  // 1. Primary services (exact content preserved)
   const coreServices = [
-    { id: 'deals', title: 'СДЕЛКИ', desc: 'M&A, реструктуризация холдингов, инвестиционные сделки и венчурный капитал.' },
-    { id: 'disputes', title: 'СПОРЫ', desc: 'Комплексные арбитражные споры, международный коммерческий арбитраж, защита в ВС РФ.' },
-    { id: 'private-wealth', title: 'ЛИЧНЫЙ КАПИТАЛ', desc: 'Семейные офисы, структурирование частных активов, трансграничное наследование.' },
+    {
+      id: 'deals',
+      num: '01',
+      title: 'СДЕЛКИ',
+      desc: 'M&A, реструктуризация холдингов, инвестиционные сделки и венчурный капитал.',
+    },
+    {
+      id: 'disputes',
+      num: '02',
+      title: 'СПОРЫ',
+      desc: 'Комплексные арбитражные споры, международный коммерческий арбитраж, защита в ВС РФ.',
+    },
+    {
+      id: 'private-wealth',
+      num: '03',
+      title: 'ЛИЧНЫЙ КАПИТАЛ',
+      desc: 'Семейные офисы, структурирование частных активов, трансграничное наследование.',
+    },
   ]
 
-  // Special directions from screenshot 3
+  // 2. Special directions (exact content preserved)
   const specialDirections = [
-    'САНКЦИИ',
-    'СПОРЫ О НАЦИОНАЛИЗАЦИИ',
-    'МОРСКОЕ ПРАВО',
-    'ТУРЕЦКОЕ НАПРАВЛЕНИЕ',
-    'РАЗБЛОКИРОВКА АКТИВОВ',
-    'ЦИФРОВАЯ ЭКОНОМИКА И ИТ',
+    { num: '01', title: 'САНКЦИИ' },
+    { num: '02', title: 'СПОРЫ О НАЦИОНАЛИЗАЦИИ' },
+    { num: '03', title: 'МОРСКОЕ ПРАВО' },
+    { num: '04', title: 'ТУРЕЦКОЕ НАПРАВЛЕНИЕ' },
+    { num: '05', title: 'РАЗБЛОКИРОВКА АКТИВОВ' },
+    { num: '06', title: 'ЦИФРОВАЯ ЭКОНОМИКА И ИТ' },
   ]
 
-  // Actual news items from screenshots 4 & 5
+  // 3. Actual news items & events (exact content preserved)
   const newsItems = [
     {
       id: 1,
       date: '1 сентября 2026 г.',
       category: 'NSP | Новости',
       title: 'Партнеры NSP встретились с президентом ФПА РФ Светланой Володиной',
-      variant: 'white-with-side-image',
       image: './assets/news_skyscraper.jpg',
+      actionLabel: 'Читать материал',
     },
     {
       id: 2,
       date: '7 сентября 2026 г.',
       category: 'NSP | Новости',
       title: 'Разблокировка активов: главные новости с начала лета',
-      variant: 'plum', // solid #5F1358
+      actionLabel: 'Спецматериал',
     },
     {
       id: 3,
       date: '8 сентября 2026 г.',
       category: 'NSP | Мероприятия',
       title: 'Приглашаем вас на космический процесс по инвестиционному арбитражу',
-      variant: 'charcoal', // #23272A
+      actionLabel: 'Регистрация участников',
     },
     {
       id: 4,
       date: '10 сентября 2026 г.',
-      category: null,
+      category: 'Аналитический отчет',
       title: 'Национализация активов: итоги 8 месяцев 2026 года',
-      variant: 'white-simple',
+      actionLabel: 'Читать исследование',
     },
     {
       id: 5,
       date: '14 сентября 2026 г.',
       category: 'NSP | Новости',
       title: 'Меры поддержки продавцов Wildberries, пострадавших от атак БПЛА',
-      variant: 'plum',
+      actionLabel: 'Читать материал',
     },
     {
       id: 6,
       date: '18 сентября 2026 г.',
       category: 'NSP | Новости',
       title: 'NSP сопровождало облачного провайдера Selectel в сделке по приобретению компании M1Cloud (ООО "Стек Групп")',
-      variant: 'white-with-top-image',
       image: './assets/news_lighthouse.jpg',
+      actionLabel: 'Пресс-релиз',
     },
   ]
 
   return (
-    <section id="practices" className="w-full bg-white text-[#0A0A0A] py-16 sm:py-24 px-6 sm:px-10 md:px-16 border-t border-black/10">
-      <div className="max-w-7xl mx-auto">
+    <section id="practices" className="w-full bg-white text-[#0A0A0A] py-20 sm:py-28 md:py-36 px-6 sm:px-10 md:px-16 border-t border-black/10">
+      <div className="max-w-7xl mx-auto space-y-24 sm:space-y-32 md:space-y-40">
 
-        {/* 1. Услуги (Core Services) */}
-        <div className="mb-14 sm:mb-18">
-          <h2 className="font-sans text-3xl sm:text-4xl md:text-5xl font-black text-[#5F1358] tracking-tight mb-8">
-            Услуги
-          </h2>
+        {/* ========================================================= */}
+        {/* 1. БЛОК УСЛУГИ (Airy Brutalism Core Services)            */}
+        {/* ========================================================= */}
+        <div>
+          {/* Header row */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 sm:mb-14">
+            <div>
+              <div className="font-mono text-xs uppercase tracking-widest text-[#5F1358] font-semibold mb-3">
+                [ 01 // УСЛУГИ И ПРАКТИКИ ]
+              </div>
+              <h2 className="font-sans text-3xl sm:text-5xl md:text-6xl font-black text-[#0A0A0A] tracking-tight leading-none">
+                Услуги
+              </h2>
+            </div>
+            <p className="font-mono text-xs sm:text-sm text-slate-500 uppercase tracking-wider max-w-md leading-relaxed">
+              Архитектура правовых решений для лидеров рейтинга Forbes и стратегических отраслей экономики
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          {/* 3-Column Architectural Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {coreServices.map((service) => (
-              <button
+              <div
                 key={service.id}
                 onClick={() => {
                   setSelectedService(selectedService === service.id ? null : service.id)
                   if (onOpenConsultation) onOpenConsultation()
                 }}
                 data-cursor="action"
-                data-cursor-label="услуга"
-                className="group relative bg-[#5F1358] hover:bg-[#4d0f47] text-white rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] flex flex-col justify-between min-h-[110px] sm:min-h-[140px]"
+                data-cursor-label="практика"
+                className="group relative bg-white border border-black/10 hover:border-black/30 rounded-2xl sm:rounded-3xl p-8 sm:p-10 md:p-12 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:bg-[#FAFAF9] flex flex-col justify-between min-h-[320px] sm:min-h-[360px] text-left cursor-pointer"
               >
-                <div className="w-full flex items-center justify-center">
-                  <span className="font-sans font-bold text-lg sm:text-xl md:text-2xl uppercase tracking-wider">
-                    {service.title}
+                {/* Card Top: Number Index + Circular Action Icon */}
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-mono text-xs sm:text-sm font-semibold text-slate-400 group-hover:text-[#5F1358] tracking-widest transition-colors">
+                    {service.num} //
                   </span>
+                  <div className="w-9 h-9 rounded-full border border-black/10 group-hover:border-[#5F1358] group-hover:bg-[#5F1358] flex items-center justify-center transition-all duration-300">
+                    <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
                 </div>
-                <div className="mt-3 text-xs sm:text-sm text-white/80 font-normal leading-relaxed opacity-90 group-hover:opacity-100 transition-opacity">
-                  {service.desc}
+
+                {/* Card Center: Title + Description */}
+                <div className="my-6">
+                  <h3 className="font-sans font-black text-2xl sm:text-3xl md:text-4xl text-[#0A0A0A] group-hover:text-[#5F1358] tracking-tight transition-colors mb-4 uppercase">
+                    {service.title}
+                  </h3>
+                  <p className="font-sans text-sm sm:text-base text-slate-600 group-hover:text-slate-900 leading-relaxed font-normal transition-colors">
+                    {service.desc}
+                  </p>
                 </div>
-              </button>
+
+                {/* Card Bottom: Editorial Subtitle */}
+                <div className="pt-6 border-t border-black/5 flex items-center justify-between text-xs font-mono uppercase tracking-wider text-slate-400 group-hover:text-[#5F1358] transition-colors">
+                  <span>Обсудить кейс</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* 2. Специальные направления (Special Directions) */}
-        <div className="mb-20 sm:mb-28">
-          <h2 className="font-sans text-2xl sm:text-3xl md:text-4xl font-black text-[#5F1358] tracking-tight mb-6 sm:mb-8">
-            Специальные направления
-          </h2>
+        {/* ========================================================= */}
+        {/* 2. БЛОК СПЕЦИАЛЬНЫЕ НАПРАВЛЕНИЯ (Airy Brutalist Matrix)   */}
+        {/* ========================================================= */}
+        <div>
+          {/* Header row */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 sm:mb-14">
+            <div>
+              <div className="font-mono text-xs uppercase tracking-widest text-[#5F1358] font-semibold mb-3">
+                [ 02 // СПЕЦИАЛЬНЫЕ НАПРАВЛЕНИЯ ]
+              </div>
+              <h2 className="font-sans text-3xl sm:text-4xl md:text-5xl font-black text-[#0A0A0A] tracking-tight leading-none">
+                Специальные направления
+              </h2>
+            </div>
+            <p className="font-mono text-xs sm:text-sm text-slate-500 uppercase tracking-wider max-w-md leading-relaxed">
+              Высокотехнологичные практики быстрого реагирования на санкционные и регуляторные вызовы
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
-            {specialDirections.map((dir, idx) => (
-              <button
-                key={idx}
+          {/* 3x2 Matrix of Clean Brutalist Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {specialDirections.map((dir) => (
+              <div
+                key={dir.num}
                 onClick={onOpenConsultation}
                 data-cursor="explore"
-                data-cursor-label="практика"
-                className="bg-[#EFE5ED] hover:bg-[#E4D4E1] text-[#5F1358] font-sans font-bold text-xs sm:text-sm uppercase tracking-wider py-4 sm:py-5 px-5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-95 text-center flex items-center justify-center"
+                data-cursor-label="направление"
+                className="group bg-white border border-black/10 hover:border-black/30 rounded-xl sm:rounded-2xl p-6 sm:p-8 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:bg-[#FAFAF9] flex flex-col justify-between min-h-[160px] sm:min-h-[180px] cursor-pointer"
               >
-                {dir}
-              </button>
+                {/* Top Row: Index + Icon */}
+                <div className="flex items-center justify-between font-mono text-xs text-slate-400">
+                  <span className="font-semibold text-slate-400 group-hover:text-[#5F1358] tracking-wider transition-colors">
+                    [ {dir.num} ]
+                  </span>
+                  <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#5F1358] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                </div>
+
+                {/* Title */}
+                <h4 className="font-sans text-base sm:text-lg md:text-xl font-bold tracking-tight text-[#0A0A0A] group-hover:text-[#5F1358] transition-colors uppercase leading-snug my-3">
+                  {dir.title}
+                </h4>
+
+                {/* Bottom Row */}
+                <div className="flex items-center justify-between pt-3 border-t border-black/5 text-[11px] font-mono text-slate-400 group-hover:text-slate-600 transition-colors uppercase tracking-wider">
+                  <span>Специальная практика</span>
+                  <span className="text-[#5F1358] opacity-0 group-hover:opacity-100 transition-opacity font-semibold">
+                    Консультация →
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* 3. Актуальное (News & Events Grid) */}
+        {/* ========================================================= */}
+        {/* 3. БЛОК АКТУАЛЬНОЕ (Airy Editorial Magazine Grid)         */}
+        {/* ========================================================= */}
         <div>
-          <h2 className="font-sans text-3xl sm:text-4xl md:text-5xl font-black text-[#5F1358] tracking-tight mb-8 sm:mb-10">
-            Актуальное
-          </h2>
+          {/* Header row */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 sm:mb-14">
+            <div>
+              <div className="font-mono text-xs uppercase tracking-widest text-[#5F1358] font-semibold mb-3">
+                [ 03 // АКТУАЛЬНОЕ И АНАЛИТИКА ]
+              </div>
+              <h2 className="font-sans text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#0A0A0A] tracking-tight leading-none">
+                Актуальное
+              </h2>
+            </div>
+            <p className="font-mono text-xs sm:text-sm text-slate-500 uppercase tracking-wider max-w-md leading-relaxed">
+              Новости законодательства, судебные прецеденты, отраслевая аналитика и события бюро
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
-            {newsItems.map((item) => {
-              if (item.variant === 'white-with-side-image') {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={onOpenConsultation}
-                    data-cursor="link"
-                    data-cursor-label="читать"
-                    className="cursor-pointer bg-white border border-black/10 rounded-2xl p-6 sm:p-7 flex flex-col justify-between min-h-[340px] hover:shadow-xl hover:border-black/20 transition-all duration-300 group"
-                  >
-                    <div className="flex items-center justify-between font-mono text-xs text-slate-500 mb-5">
-                      <span>{item.date}</span>
-                      {item.category && <span className="underline text-slate-700 font-medium">{item.category}</span>}
-                    </div>
+          {/* 6-Card Editorial Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+            {newsItems.map((item) => (
+              <div
+                key={item.id}
+                onClick={onOpenConsultation}
+                data-cursor="link"
+                data-cursor-label="читать"
+                className="group cursor-pointer bg-white border border-black/10 hover:border-black/30 rounded-2xl sm:rounded-3xl p-7 sm:p-8 hover:bg-[#FAFAF9] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[380px] sm:min-h-[420px]"
+              >
+                {/* Meta Top: Date + Category Badge */}
+                <div className="flex items-center justify-between gap-2 mb-5 font-mono text-xs">
+                  <span className="text-slate-400 font-medium whitespace-nowrap">{item.date}</span>
+                  <span className="font-mono text-[11px] font-semibold tracking-wider text-[#5F1358] bg-[#5F1358]/5 border border-[#5F1358]/15 px-2.5 py-0.5 rounded-full shrink-0">
+                    {item.category || 'Аналитический отчет'}
+                  </span>
+                </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center flex-1">
-                      <div className="sm:col-span-7">
-                        <h3 className="font-sans text-base sm:text-lg font-bold text-[#0A0A0A] leading-snug group-hover:text-[#5F1358] transition-colors">
-                          {item.title}
-                        </h3>
-                      </div>
-                      <div className="sm:col-span-5 aspect-square overflow-hidden rounded-xl bg-slate-100">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between text-xs font-mono text-[#5F1358] font-semibold">
-                      <span>Подробнее</span>
-                      <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </div>
+                {/* Optional Architectural Image Frame (Grayscale to Color on Hover) */}
+                {item.image && (
+                  <div className="aspect-[16/10] w-full overflow-hidden rounded-xl bg-slate-100 mb-5 border border-black/5">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover grayscale contrast-105 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+                      loading="lazy"
+                    />
                   </div>
-                )
-              }
+                )}
 
-              if (item.variant === 'plum') {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={onOpenConsultation}
-                    data-cursor="link"
-                    data-cursor-label="читать"
-                    className="cursor-pointer bg-[#5F1358] text-white rounded-2xl p-6 sm:p-7 flex flex-col justify-between min-h-[340px] hover:shadow-xl hover:bg-[#520f4c] transition-all duration-300 group"
-                  >
-                    <div className="flex items-center justify-between font-mono text-xs text-white/80 mb-5">
-                      <span>{item.date}</span>
-                      {item.category && <span className="underline text-white font-medium">{item.category}</span>}
-                    </div>
+                {/* Headline Title */}
+                <div className="mt-1 mb-auto py-2">
+                  <h3 className="font-sans text-base sm:text-lg md:text-xl font-bold text-[#0A0A0A] leading-snug group-hover:text-[#5F1358] transition-colors">
+                    {item.title}
+                  </h3>
+                </div>
 
-                    <div className="flex-1 flex items-center">
-                      <h3 className="font-sans text-lg sm:text-xl font-bold text-white leading-snug">
-                        {item.title}
-                      </h3>
-                    </div>
+                {/* Card Bottom: Action Link */}
+                <div className="mt-auto pt-4 border-t border-black/5 flex items-center justify-between text-xs font-mono uppercase tracking-wider text-slate-400 group-hover:text-[#5F1358] transition-colors">
+                  <span>{item.actionLabel}</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </div>
+              </div>
+            ))}
+          </div>
 
-                    <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-white/90 font-semibold">
-                      <span>Спецматериал</span>
-                      <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </div>
-                  </div>
-                )
-              }
-
-              if (item.variant === 'charcoal') {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={onOpenConsultation}
-                    data-cursor="link"
-                    data-cursor-label="регистрация"
-                    className="cursor-pointer bg-[#23272A] text-white rounded-2xl p-6 sm:p-7 flex flex-col justify-between min-h-[340px] hover:shadow-xl hover:bg-[#1a1d20] transition-all duration-300 group"
-                  >
-                    <div className="flex items-center justify-between font-mono text-xs text-slate-400 mb-5">
-                      <span>{item.date}</span>
-                      {item.category && <span className="underline text-white font-medium">{item.category}</span>}
-                    </div>
-
-                    <div className="flex-1 flex items-center">
-                      <h3 className="font-sans text-lg sm:text-xl font-bold text-white leading-snug">
-                        {item.title}
-                      </h3>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono text-slate-300 font-semibold">
-                      <span>Регистрация участников</span>
-                      <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </div>
-                  </div>
-                )
-              }
-
-              if (item.variant === 'white-simple') {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={onOpenConsultation}
-                    data-cursor="link"
-                    data-cursor-label="читать"
-                    className="cursor-pointer bg-white border border-black/10 rounded-2xl p-6 sm:p-7 flex flex-col justify-between min-h-[340px] hover:shadow-xl hover:border-black/20 transition-all duration-300 group"
-                  >
-                    <div className="flex items-center justify-between font-mono text-xs text-slate-500 mb-5">
-                      <span>{item.date}</span>
-                      <span className="font-mono text-slate-400">Аналитический отчет</span>
-                    </div>
-
-                    <div className="flex-1 flex items-center">
-                      <h3 className="font-sans text-lg sm:text-xl font-bold text-[#0A0A0A] leading-snug group-hover:text-[#5F1358] transition-colors">
-                        {item.title}
-                      </h3>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between text-xs font-mono text-[#5F1358] font-semibold">
-                      <span>Читать исследование</span>
-                      <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </div>
-                  </div>
-                )
-              }
-
-              if (item.variant === 'white-with-top-image') {
-                return (
-                  <div
-                    key={item.id}
-                    onClick={onOpenConsultation}
-                    data-cursor="link"
-                    data-cursor-label="читать"
-                    className="cursor-pointer bg-white border border-black/10 rounded-2xl overflow-hidden flex flex-col justify-between min-h-[340px] hover:shadow-xl hover:border-black/20 transition-all duration-300 group"
-                  >
-                    <div className="aspect-[16/9] w-full overflow-hidden bg-slate-100">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    <div className="p-6 sm:p-7 flex flex-col justify-between flex-1">
-                      <div className="flex items-center justify-between font-mono text-xs text-slate-500 mb-3">
-                        <span>{item.date}</span>
-                        {item.category && <span className="underline text-slate-700 font-medium">{item.category}</span>}
-                      </div>
-
-                      <h3 className="font-sans text-base sm:text-lg font-bold text-[#0A0A0A] leading-snug group-hover:text-[#5F1358] transition-colors mb-4">
-                        {item.title}
-                      </h3>
-
-                      <div className="pt-3 border-t border-black/5 flex items-center justify-between text-xs font-mono text-[#5F1358] font-semibold">
-                        <span>Пресс-релиз</span>
-                        <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                      </div>
-                    </div>
-                  </div>
-                )
-              }
-
-              return null
-            })}
+          {/* Bottom Archive Action Bar */}
+          <div className="mt-12 sm:mt-16 pt-8 border-t border-black/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <span className="font-mono text-xs text-slate-400 uppercase tracking-widest">
+              [ АРХИВ ПУБЛИКАЦИЙ И ПРЕЦЕДЕНТОВ С 2006 ГОДА ]
+            </span>
+            <button
+              onClick={onOpenConsultation}
+              className="btn-nothin-outline group"
+              data-cursor="action"
+              data-cursor-label="архив"
+            >
+              <span>Все новости и аналитика</span>
+              <ArrowRight className="w-3.5 h-3.5 arrow-icon" />
+            </button>
           </div>
         </div>
 
